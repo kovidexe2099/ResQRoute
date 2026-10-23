@@ -1,0 +1,46 @@
+# Environment variables and local secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+application-local.properties
+application-local.yml
+application-local.yaml
+application-*.local.properties
+*.secrets
+secrets.*
+
+# Java / Maven build output
+target/
+build/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IDE files
+.idea/
+*.iws
+*.iml
+*.ipr
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+.vscode/
+
+# OS and logs
+.DS_Store
+Thumbs.db
+*.log
+
+# Other build tooling
+.apt_generated/
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
