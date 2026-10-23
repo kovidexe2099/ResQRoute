@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#05070a">
+  <meta name="description"
+        content="ResQRoute Emergency — request an ambulance with one tap. We locate you automatically and dispatch the nearest available unit.">
+  <title>ResQRoute Emergency — Request an Ambulance</title>
+
+  <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ff6b1a'/%3E%3Cpath d='M32 18v28M18 32h28' stroke='white' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
+  <!-- ResQRoute design system -->
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/victim.css">
+  <link rel="stylesheet" href="css/guidance.css">
+</head>
+
+<body class="victim-page">
+
+<div class="bg-grid"></div>
+<div class="victim-aura"></div>
+
+<main class="victim-wrap">
+
+  <div class="brand plain">
+    <svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+      <rect width="40" height="40" rx="11" fill="#ff6b1a"/>
+      <path d="M20 11v18M11 20h18" stroke="#fff" stroke-width="5"
+            stroke-linecap="round"/>
+      <circle cx="29.5" cy="29.5" r="1.7" fill="rgba(255,255,255,.6)"/>
+      <circle cx="34" cy="34" r="1.7" fill="rgba(255,255,255,.85)"/>
+    </svg>
+    <span>ResQ<span class="brand-accent">Route</span></span>
+  </div>
+
+  <div class="glass victim-card">
+
+    <div class="victim-eyebrow">
+      <span class="pulse-dot red"></span>
+      Emergency Line
+    </div>
+
+    <h1>Need Emergency Assistance?</h1>
+
+    <p class="victim-sub">
+      One tap. We'll automatically find your location and dispatch
+      the nearest available ambulance.
+    </p>
+
+    <!-- Severity: CRITICAL emergencies get first claim on the next free ambulance -->
+    <div class="severity-select" role="group" aria-label="Emergency severity">
+      <button type="button"
+              class="severity-option active"
+              data-severity="NORMAL"
+              onclick="setSeverity('NORMAL')">
+        Normal
+      </button>
+      <button type="button"
+              class="severity-option critical"
+              data-severity="CRITICAL"
+              onclick="setSeverity('CRITICAL')">
+        Critical
+      </button>
+    </div>
+
+    <button id="requestButton"
+            class="btn-sos"
+            onclick="requestAmbulance()">
+      <span class="sos-rings"></span>
+      REQUEST AMBULANCE
+    </button>
+
+    <!-- 3-step progress (Locating -> Matching -> Dispatched) -->
+    <div id="victimFlow" class="victim-flow">
+
+      <div class="flow-step" data-step="locating">
+        <div class="flow-dot"></div>
+        <div class="flow-text">Locating you…</div>
+      </div>
+
+      <div class="flow-step" data-step="matching">
+        <div class="flow-dot"></div>
+        <div class="flow-text">Finding the best available ambulance…</div>
+      </div>
+
+      <div class="flow-step" data-step="done">
+        <div class="flow-dot"></div>
+        <div class="flow-text">Ambulance dispatched</div>
+      </div>
+
+    </div>
+
+    <!-- Status / result / error messages -->
+    <div id="status" class="status hidden"></div>
+
+    <!-- Private tracking link for THIS dispatch (appears after success) -->
+    <a id="trackButton" class="btn-track hidden" href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+        <path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11z"/>
+        <circle cx="12" cy="10" r="2.5"/>
+      </svg>
+      TRACK MY AMBULANCE
+    </a>
+
+    <button id="retryButton"
+            class="btn btn-ghost hidden"
+            onclick="requestAmbulance()">
+      Try Again
+    </button>
+
+    <!-- WHILE YOU WAIT: optional, shown only AFTER the dispatch exists.
+         The guidance below can never delay the dispatch — the
+         ambulance is already on its way. -->
+    <section id="guidanceSection" class="guidance-panel hidden">
+      <div class="guidance-eyebrow">
+        <span class="pulse-dot orange"></span>
+        WHILE YOU WAIT
+      </div>
+      <h2 class="guidance-title-block">What is happening?</h2>
+      <p class="guidance-sub">
+        Describe the situation, then pick a category to get simple
+        first-aid guidance. This step is completely optional — your
+        ambulance is already on its way and tracking works without it.
+      </p>
+
+      <textarea id="guidanceText" class="guidance-textarea"
+                placeholder="e.g. My father collapsed and is not responding"></textarea>
+
+      <div class="guidance-actions">
+        <button type="button" class="btn btn-ghost"
+                onclick="showGuidanceCategories()">
+          GET IMMEDIATE GUIDANCE
+        </button>
+      </div>
+
+      <div id="guidanceChips" class="guidance-chips hidden"></div>
+      <div id="guidanceOutput" class="guidance-output hidden"></div>
+
+      <p class="guidance-note">
+        Including "I'm not sure what is happening" — you will still get
+        safe general guidance, and it changes nothing about your
+        ambulance.
+      </p>
+    </section>
+
+  </div>
+
+  <div class="victim-foot">
+    <span>ResQRoute — intelligent emergency response & routing.</span>
+  </div>
+
+</main>
+
+<!-- ResQRoute victim logic -->
+<script src="js/victim.js"></script>
+<script src="js/guidance.js"></script>
+<script>
+  function showGuidanceCategories() {
+    const chips = document.getElementById("guidanceChips");
+    chips.classList.remove("hidden");
+
+    resqRenderGuidanceChips("guidanceChips", (categoryId) => {
+      resqRenderGuidanceText("guidanceOutput", categoryId);
+    });
+
+    chips.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+</script>
+
+</body>
+</html>

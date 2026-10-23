@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+        content="ResQRoute Command Center — emergency operations dashboard for ambulances, hospitals, dispatch and live routing.">
+  <title>ResQRoute — Command Center</title>
+
+  <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ff6b1a'/%3E%3Cpath d='M32 18v28M18 32h28' stroke='white' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Leaflet (existing map engine) -->
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
+  <!-- ResQRoute design system -->
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/command.css">
+</head>
+
+<body class="command-page">
+
+<div class="bg-aura"></div>
+
+<!-- ==========================================================================
+     TOP BAR
+========================================================================== -->
+<header class="cmd-topbar">
+
+  <div style="display:flex; align-items:center; gap:16px;">
+    <span class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <rect width="40" height="40" rx="11" fill="#ff6b1a"/>
+        <path d="M20 11v18M11 20h18" stroke="#fff" stroke-width="5"
+              stroke-linecap="round"/>
+        <circle cx="29.5" cy="29.5" r="1.7" fill="rgba(255,255,255,.6)"/>
+        <circle cx="34" cy="34" r="1.7" fill="rgba(255,255,255,.85)"/>
+      </svg>
+      <span>ResQ<span class="brand-accent">Route</span></span>
+    </span>
+    <span class="cmd-tag">COMMAND CENTER</span>
+  </div>
+
+  <div class="cmd-topbar-right">
+
+    <div class="cmd-clock" title="This device streams its GPS position to the selected ambulance">
+      <span class="pulse-dot orange"></span>
+      <label for="gpsAmbulanceSelect" class="gps-label">This device:</label>
+      <select id="gpsAmbulanceSelect" class="gps-select"></select>
+    </div>
+
+    <div class="cmd-clock">
+      <span class="pulse-dot orange"></span>
+      <span id="commandClock">00:00:00</span>
+    </div>
+
+    <a href="index.html" class="link" onclick="logout(); return false;">Log Out</a>
+    <a href="victim.html" class="btn btn-primary btn-sm">Request Ambulance</a>
+
+  </div>
+
+</header>
+
+<!-- ==========================================================================
+     MAIN
+========================================================================== -->
+<main class="cmd-main">
+
+  <div class="cmd-head">
+    <h1 id="title">Fleet</h1>
+    <p id="subtitle">Manage your ambulance fleet</p>
+  </div>
+
+  <!-- Live stats (computed from already-loaded data) -->
+  <div class="stats-row">
+
+    <div class="stat-card glass">
+      <div class="stat-icon green">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M3 17h2l2-4 3 8 3-12 2.5 8H21"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-value" id="statAvailable">0</div>
+        <div class="card-label">Available Ambulances</div>
+      </div>
+    </div>
+
+    <div class="stat-card glass">
+      <div class="stat-icon orange">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M10 3h4l1 3 2.5 1.5L21 7l1 4-2.5 2 .5 3-3 2-2.5-2-3 1-2.5-2-3 2-3-2 .5-3L2 11l1-4 3.5.5L9 6l1-3z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-value" id="statBusy">0</div>
+        <div class="card-label">Busy Ambulances</div>
+      </div>
+    </div>
+
+    <div class="stat-card glass" id="statEmergencyCard">
+      <div class="stat-icon red">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M12 3l9.5 17H2.5L12 3z"/>
+          <path d="M12 10v4M12 17.5v.01"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-value" id="statEmergency">0</div>
+        <div class="card-label">Active Emergencies</div>
+      </div>
+    </div>
+
+    <div class="stat-card glass">
+      <div class="stat-icon blue">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M4 21h16M12 21v-6M8 15h8"/>
+          <rect x="2" y="3" width="20" height="12" rx="2"/>
+          <path d="M12 7v4M10 9h4"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-value" id="statHospitals">0</div>
+        <div class="card-label">Hospitals</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tabs -->
+  <nav class="cmd-tabs">
+    <button class="active" data-tab="ambulances"
+            onclick="showTab('ambulances', this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 16V7h10v9M13 10h4l3 3v3h-2"/>
+        <circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>
+      </svg>
+      Fleet
+    </button>
+
+    <button data-tab="hospitals" onclick="showTab('hospitals', this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M4 21h16M12 21v-6M8 15h8"/>
+        <rect x="2" y="3" width="20" height="12" rx="2"/>
+        <path d="M12 7v4M10 9h4"/>
+      </svg>
+      Hospitals
+    </button>
+
+    <button data-tab="emergency" onclick="showTab('emergency', this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M12 3l9.5 17H2.5L12 3z"/>
+        <path d="M12 10v4M12 17.5v.01"/>
+      </svg>
+      Emergency
+    </button>
+
+    <button data-tab="operations" onclick="showTab('operations', this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M8 6h13M8 12h13M8 18h13"/>
+        <path d="M3 6h.01M3 12h.01M3 18h.01"/>
+      </svg>
+      Dispatches
+    </button>
+
+    <button data-tab="dispatchMap" onclick="showTab('dispatchMap', this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 3v18M3 12h18M12 12l6-4"/>
+      </svg>
+      Dispatch Map
+    </button>
+  </nav>
+
+  <!-- ======================================================================
+       FLEET (AMBULANCES)
+  ======================================================================= -->
+  <section id="ambulances" class="cmd-section active">
+
+    <div class="cmd-panel glass">
+
+      <h2>Ambulance Management</h2>
+      <p>Add, modify, view and delete ambulances.</p>
+
+      <button class="disclosure" onclick="toggleForm('ambulanceForm', this)">
+        Add Ambulance
+        <span class="disclosure-icon">+</span>
+      </button>
+
+      <div id="ambulanceForm" class="form-wrap">
+
+        <div class="form-grid">
+
+          <div class="field">
+            <label>Vehicle Number</label>
+            <input id="vehicleNumber" placeholder="TS09AB1234">
+          </div>
+
+          <div class="field">
+            <label>Status</label>
+            <select id="status">
+              <option value="AVAILABLE">AVAILABLE</option>
+              <option value="DISPATCHED">DISPATCHED</option>
+              <option value="TO_VICTIM">TO_VICTIM</option>
+              <option value="AT_VICTIM">AT_VICTIM</option>
+              <option value="TO_HOSPITAL">TO_HOSPITAL</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Location</label>
+            <input id="location" placeholder="Hyderabad">
+          </div>
+
+          <div class="field">
+            <label>Latitude</label>
+            <input id="latitude" placeholder="17.4065">
+          </div>
+
+          <div class="field">
+            <label>Longitude</label>
+            <input id="longitude" placeholder="78.4772">
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveAmbulance()">
+            Save Ambulance
+          </button>
+        </div>
+
+      </div>
+
+      <button class="disclosure" onclick="toggleForm('modifyForm', this)">
+        Modify Ambulance
+        <span class="disclosure-icon">+</span>
+      </button>
+
+      <div id="modifyForm" class="form-wrap">
+
+        <div class="form-grid">
+
+          <div class="field">
+            <label>Ambulance ID</label>
+            <input id="updateId" type="number" placeholder="Ambulance ID">
+          </div>
+
+          <div class="field">
+            <label>Vehicle Number</label>
+            <input id="updateVehicleNumber" placeholder="TS09AB1234">
+          </div>
+
+          <div class="field">
+            <label>Status</label>
+            <select id="updateStatus">
+              <option value="AVAILABLE">AVAILABLE</option>
+              <option value="DISPATCHED">DISPATCHED</option>
+              <option value="TO_VICTIM">TO_VICTIM</option>
+              <option value="AT_VICTIM">AT_VICTIM</option>
+              <option value="TO_HOSPITAL">TO_HOSPITAL</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Location</label>
+            <input id="updateLocation" placeholder="Hyderabad">
+          </div>
+
+          <div class="field">
+            <label>Latitude</label>
+            <input id="updateLatitude" placeholder="17.4065">
+          </div>
+
+          <div class="field">
+            <label>Longitude</label>
+            <input id="updateLongitude" placeholder="78.4772">
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="updateAmbulance()">
+            Update Ambulance
+          </button>
+        </div>
+
+      </div>
+
+      <div class="table-note">
+        <input id="searchBox" class="search"
+               placeholder="Search ambulances…" oninput="filterTable()">
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Vehicle</th>
+              <th>Status</th>
+              <th>Location</th>
+              <th>Coordinates</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ambulanceTable"></tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ======================================================================
+       HOSPITALS
+  ======================================================================= -->
+  <section id="hospitals" class="cmd-section">
+
+    <div class="cmd-panel glass">
+
+      <h2>Hospital Management</h2>
+      <p>Manage destination hospitals for emergency dispatch.</p>
+
+      <button class="disclosure" onclick="toggleForm('hospitalForm', this)">
+        Add Hospital
+        <span class="disclosure-icon">+</span>
+      </button>
+
+      <div id="hospitalForm" class="form-wrap">
+
+        <div class="form-grid">
+
+          <div class="field">
+            <label>Name</label>
+            <input id="hospitalName" placeholder="Hospital name">
+          </div>
+
+          <div class="field">
+            <label>Location</label>
+            <input id="hospitalLocation" placeholder="Jubilee Hills">
+          </div>
+
+          <div class="field">
+            <label>Latitude</label>
+            <input id="hospitalLatitude" placeholder="17.4239">
+          </div>
+
+          <div class="field">
+            <label>Longitude</label>
+            <input id="hospitalLongitude" placeholder="78.4738">
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveHospital()">
+            Save Hospital
+          </button>
+        </div>
+
+      </div>
+
+      <button class="disclosure" onclick="toggleForm('modifyHospitalForm', this)">
+        Modify Hospital
+        <span class="disclosure-icon">+</span>
+      </button>
+
+      <div id="modifyHospitalForm" class="form-wrap">
+
+        <div class="form-grid">
+
+          <div class="field">
+            <label>Hospital ID</label>
+            <input id="updateHospitalId" type="number" placeholder="Hospital ID">
+          </div>
+
+          <div class="field">
+            <label>Name</label>
+            <input id="updateHospitalName" placeholder="Hospital name">
+          </div>
+
+          <div class="field">
+            <label>Location</label>
+            <input id="updateHospitalLocation" placeholder="Hyderabad">
+          </div>
+
+          <div class="field">
+            <label>Latitude</label>
+            <input id="updateHospitalLatitude" placeholder="17.4065">
+          </div>
+
+          <div class="field">
+            <label>Longitude</label>
+            <input id="updateHospitalLongitude" placeholder="78.4772">
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="updateHospital()">
+            Update Hospital
+          </button>
+        </div>
+
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Location</th>
+              <th>Coordinates</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="hospitalTable"></tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ======================================================================
+       EMERGENCY DISPATCH
+  ======================================================================= -->
+  <section id="emergency" class="cmd-section">
+
+    <div class="cmd-panel glass">
+
+      <!-- The REAL victim workflow: requests arrive automatically
+           from victim.html (browser GPS) and are detected by polling. -->
+      <div class="live-emergency">
+        <div class="live-emergency-title">
+          <span class="pulse-dot red"></span>
+          LIVE VICTIM REQUESTS
+        </div>
+        <div id="liveEmergencyStatus" class="live-emergency-status">
+          Waiting for a new emergency request…
+        </div>
+        <!-- queue depth gets its own line so it can never fight with
+             the "new emergency" message above -->
+        <div id="queueBanner" class="live-emergency-status queue hidden"></div>
+      </div>
+
+      <h2>Emergency Dispatch</h2>
+      <p>
+        Real victims press REQUEST AMBULANCE on the victim page — their
+        browser sends the GPS position automatically. Emergencies appear
+        here by themselves; no one ever types coordinates for a real
+        victim request.
+      </p>
+
+      <!-- Clearly separated SIMULATION / TESTING panel (NOT the real
+           victim workflow). The device button uses browser GPS, the
+           exact same flow as the victim page. -->
+      <div class="test-panel">
+        <div class="test-panel-title">SIMULATION & TESTING ONLY</div>
+        <p class="test-note">
+          For demos and API / Dijkstra testing. A real victim request comes
+          from the victim page — never from typed coordinates.
+        </p>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="requestAmbulanceFromDeviceLocation()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11z"/>
+              <circle cx="12" cy="10" r="2.5"/>
+            </svg>
+            Simulate Victim Request From This Device
+          </button>
+        </div>
+
+        <details class="raw-response test-advanced">
+          <summary>Advanced — manual coordinates (testing only)</summary>
+          <div class="form-grid" style="margin-top: 16px">
+
+            <div class="field">
+              <label>Source Latitude</label>
+              <input id="sourceLatitude" placeholder="17.4300">
+            </div>
+
+            <div class="field">
+              <label>Source Longitude</label>
+              <input id="sourceLongitude" placeholder="78.4900">
+            </div>
+
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" onclick="findBestAmbulance()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                <circle cx="11" cy="11" r="7"/>
+                <path d="M21 21l-4.3-4.3"/>
+              </svg>
+              Find Best Ambulance (manual test)
+            </button>
+          </div>
+        </details>
+      </div>
+
+      <div id="dispatchResult">
+
+        <!-- Pretty dispatch summary (filled by js/command.js) -->
+        <div class="dispatch-summary" id="dispatchSummary"></div>
+
+        <!-- Raw backend response kept for debugging -->
+        <details class="raw-response">
+          <summary>RAW BACKEND RESPONSE</summary>
+          <pre id="routeResponse">No dispatch yet.</pre>
+        </details>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ======================================================================
+       DISPATCHES & EMERGENCIES (operational lists, refreshed by polling
+       GET /route/latest — the database is the source of truth)
+  ======================================================================= -->
+  <section id="operations" class="cmd-section">
+
+    <div class="cmd-panel glass">
+
+      <h2>Active Dispatches</h2>
+      <p>Every dispatch currently being worked, straight from the database.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Emergency</th>
+              <th>Severity</th>
+              <th>Ambulance</th>
+              <th>Status</th>
+              <th>Hospital</th>
+              <th>To Victim</th>
+              <th>To Hospital</th>
+              <th>Traffic</th>
+            </tr>
+          </thead>
+          <tbody id="operationsDispatchTable"></tbody>
+        </table>
+      </div>
+
+      <h2 class="ops-spacing">Queued Emergencies</h2>
+      <p>Waiting for the next free ambulance (CRITICAL before HIGH before NORMAL).</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Emergency</th>
+              <th>Severity</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="operationsPendingTable"></tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ======================================================================
+       DISPATCH MAP
+  ======================================================================= -->
+  <section id="dispatchMap" class="cmd-section">
+
+    <div id="mapArea">
+
+      <div class="no-dispatch">
+        <div class="nd-title"><span class="pulse-dot orange"></span> STANDBY</div>
+        No dispatch available yet.<br><br>
+        Dispatches appear here automatically when a victim requests an
+        ambulance — and the active one is always restored from the
+        database after a refresh.
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+<!-- Toasts -->
+<div id="toastStack" class="toast-stack"></div>
+
+<!-- Leaflet (existing map engine) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- ResQRoute command center logic (all original functionality preserved) -->
+<script src="js/command.js"></script>
+
+</body>
+</html>

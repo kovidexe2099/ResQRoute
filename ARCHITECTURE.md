@@ -20,7 +20,7 @@ Browser (victim / dashboard / landing)
         │  REST (JSON)
         ▼
 Controllers ── RouteController, AmbulanceController, HospitalController,
-        │       OsrmController, GlobalExceptionHandler
+        │       TrackController, OsrmController, GlobalExceptionHandler
         ▼
 Services ────── EmergencyService (create + priority queue)
         │       RouteService     (dispatch orchestration)
@@ -88,7 +88,7 @@ It is NOT called "live traffic" anywhere — it is a simulation.
 
 ```
 1. EmergencyService.createEmergency   [TX1 — committed]
-     validate victim GPS, normalize severity (CRITICAL/NORMAL)
+     validate victim GPS, normalize severity (CRITICAL/HIGH/NORMAL)
      persist Emergency(PENDING)          ← never lost, even on later failure
 2. RouteService.dispatchToEmergency   [TX2 — all-or-nothing]
      a. candidates  = ambulances with status AVAILABLE + valid GPS
@@ -123,8 +123,9 @@ PENDING ──dispatch──▶ DISPATCHED ──ambulance AVAILABLE──▶ CO
 When an ambulance becomes AVAILABLE (`PUT /ambulance/{id}/status`):
 1. Its ACTIVE dispatch is marked COMPLETED (with timestamp), the emergency COMPLETED. [TX]
 2. After that transaction commits, the pending queue is processed in priority
-   order: **CRITICAL first, then longest waiting (FIFO)** — each attempt in its
-   own transaction, so a failure never rolls back the status change.
+   order: **CRITICAL before HIGH before NORMAL, FIFO within each severity** —
+   each attempt in its own transaction, so a failure never rolls back the
+   status change.
 
 Ambulance status lifecycle (validated set):
 `AVAILABLE → DISPATCHED → TO_VICTIM → AT_VICTIM → TO_HOSPITAL → AVAILABLE`
@@ -146,11 +147,38 @@ Ambulance status lifecycle (validated set):
 
 ---
 
-## 8. Database
+## 8. Security
+
+Two clearly separated worlds:
+
+**Staff (authenticated)** — `index.html` (login page), `command.html` and
+every management/operational API (`/ambulance/**`, `/hospital/**`,
+`/route/latest`, `/route/active`, `/osrm/**`). Session-based form login
+(Spring Security) with BCrypt-hashed passwords from the `staff_user`
+table; no plaintext password is ever stored. The first account is
+seeded on first start-up (random password printed once in the console,
+or a configured hash — see `StaffUserSeeder`). Basic auth is also
+enabled for programmatic clients/tests. CSRF is enabled with a readable
+`XSRF-TOKEN` cookie that the frontend echoes as `X-XSRF-TOKEN`;
+unauthenticated API calls get a clean 401, page requests redirect to
+the login page.
+
+**Victims (public, by design)** — `victim.html`, `track.html`,
+`POST /route/best-ambulance` and `GET /track/{token}` need no login.
+The tracking endpoint is authorized solely by the dispatch's random
+64-hex tracking token (32 SecureRandom bytes): a victim can read their
+own dispatch and nothing else, and the response exposes no internal ids.
+There is no cross-origin API surface: every page is served by the same
+application and calls it same-origin.
+
+---
+
+## 9. Database
 
 `ambulance` (+ `last_location_update` column), `hospital`, `emergency`,
 `dispatch` (routes in LONGTEXT, UNIQUE `emergency_id`), `location_node`
-(road-network vertices, seeded with 16 Hyderabad landmarks on first start).
+(road-network vertices, seeded with 16 Hyderabad landmarks on first start),
+`staff_user` (BCrypt password hashes, seeded once).
 
 All emergency/dispatch data is in the database — there is **no controller
 memory**. Restarts lose nothing; the dashboard snapshot
@@ -158,34 +186,42 @@ memory**. Restarts lose nothing; the dashboard snapshot
 
 ---
 
-## 9. Running & Testing
+## 10. Running & Testing
 
 ```bash
-# requires JDK 21 + MySQL running (see application.properties)
+# requires JDK 21 + MySQL running + the DB_PASSWORD environment
+# variable set to the MySQL password (never stored in the repository)
+#   PowerShell:   $env:DB_PASSWORD="..."; .\mvnw.cmd spring-boot:run
+#   cmd:          set DB_PASSWORD=... && mvnw.cmd spring-boot:run
 mvnw spring-boot:run          # http://localhost:8080
 
 mvnw test                     # automated tests (H2, no MySQL needed)
 ```
 
-Pages: `/` (landing, live map), `/command.html` (operations centre),
-`/victim.html` (one-tap emergency request).
+Pages: `/` (staff login page, index.html), `/command.html` (operations
+centre), `/victim.html` (one-tap emergency request),
+`/track.html?token=…` (private victim tracking).
 
 Useful endpoint checks:
 ```
 GET  /osrm/test?fromLat=&fromLon=&toLat=&toLon=     – live OSRM route
 GET  /route/latest                      – dashboard snapshot
-POST /route/best-ambulance              – {"sourceLatitude":…, "sourceLongitude":…, "severity":"NORMAL|CRITICAL"}
+GET  /route/active                      – ALL active dispatches (staff)
+GET  /track/{token}                     – private victim tracking (public)
+POST /route/best-ambulance              – {"sourceLatitude":…, "sourceLongitude":…, "severity":"NORMAL|HIGH|CRITICAL"}
 PUT  /ambulance/{id}/status              – {"status":"TO_VICTIM"} (lifecycle)
 PUT  /ambulance/{id}/location            – {"latitude":…, "longitude":…, "locationTimestamp":epochMs}
 ```
 
 ---
 
-## 10. Known Limitations
+## 11. Known Limitations
 
 - Traffic is **simulated** (radial zones) — swap `TrafficService.trafficLevelAt` for a real feed later.
 - The OSRM fallback (`×1.3 road factor, 40 km/h`) is an **estimate**, used only when OSRM is unreachable or returns no route.
 - Graph landmarks are a small model of Hyderabad (16 nodes) — add rows to `location_node` to refine it.
 - The public OSRM server occasionally rate-limits bursts; the system degrades gracefully to estimates.
 - Device-to-ambulance GPS is browser-based (prototype transport); a real system would use vehicle telemetry.
-- No authentication (by design, college project).
+- The public victim request endpoint (`POST /route/best-ambulance`) is
+  unauthenticated **by design** (a victim must never face a login) — anyone
+  can submit an emergency, and there is no rate limiting (college project).

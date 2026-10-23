@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#05070a">
+  <meta name="robots" content="noindex">
+  <meta name="description"
+        content="ResQRoute private ambulance tracking — follow your assigned ambulance live.">
+  <title>ResQRoute — Tracking Your Ambulance</title>
+
+  <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ff6b1a'/%3E%3Cpath d='M32 18v28M18 32h28' stroke='white' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Leaflet + OpenStreetMap (no paid APIs, no API keys) -->
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
+  <!-- ResQRoute design system -->
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/track.css">
+  <link rel="stylesheet" href="css/guidance.css">
+</head>
+
+<body class="track-page">
+
+<div class="bg-grid"></div>
+
+<main class="track-wrap">
+
+  <div class="brand plain">
+    <svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+      <rect width="40" height="40" rx="11" fill="#ff6b1a"/>
+      <path d="M20 11v18M11 20h18" stroke="#fff" stroke-width="5"
+            stroke-linecap="round"/>
+      <circle cx="29.5" cy="29.5" r="1.7" fill="rgba(255,255,255,.6)"/>
+      <circle cx="34" cy="34" r="1.7" fill="rgba(255,255,255,.85)"/>
+    </svg>
+    <span>ResQ<span class="brand-accent">Route</span></span>
+  </div>
+
+  <!-- ================================================================
+       INVALID / EXPIRED TRACKING LINK
+  ================================================================ -->
+  <section id="invalidState" class="glass track-card hidden">
+    <div class="track-eyebrow">
+      <span class="pulse-dot red"></span>
+      TRACKING UNAVAILABLE
+    </div>
+    <h1>This tracking link is not valid</h1>
+    <p class="track-sub">
+      The link may be mistyped or the dispatch may no longer be
+      available. If you just requested an ambulance, open the
+      confirmation on the emergency page again.
+    </p>
+    <a href="victim.html" class="btn btn-primary btn-block">
+      REQUEST AN AMBULANCE
+    </a>
+  </section>
+
+  <!-- ================================================================
+       LIVE TRACKING (only this victim's own dispatch)
+  ================================================================ -->
+  <section id="trackContent" class="hidden">
+
+    <div class="track-head">
+      <div class="track-eyebrow">
+        <span class="pulse-dot orange"></span>
+        TRACKING YOUR AMBULANCE
+      </div>
+      <h1 id="trackHeading">Your ambulance</h1>
+    </div>
+
+    <!-- Temporary problems (backend unreachable / GPS unavailable) -->
+    <div id="trackError" class="track-alert error hidden"></div>
+
+    <!-- GPS specifically missing -->
+    <div id="gpsAlert" class="track-alert notice hidden">
+      Ambulance location temporarily unavailable — showing the rest of
+      your dispatch. It will refresh automatically.
+    </div>
+
+    <!-- Completed dispatch -->
+    <div id="completedAlert" class="track-alert success hidden">
+      <strong>Completed.</strong> The ambulance delivered the patient to
+      the hospital. We hope everyone is safe.
+    </div>
+
+    <!-- Status chips -->
+    <div class="glass track-chips">
+      <div class="track-chip">
+        <div class="card-label">Ambulance</div>
+        <div class="card-value" id="chipAmbulance">—</div>
+      </div>
+      <div class="track-chip">
+        <div class="card-label">Status</div>
+        <div class="card-value small" id="chipStatus">—</div>
+      </div>
+      <div class="track-chip">
+        <div class="card-label">ETA to you</div>
+        <div class="card-value small" id="chipEtaYou">—</div>
+      </div>
+      <div class="track-chip">
+        <div class="card-label">Distance to you</div>
+        <div class="card-value small" id="chipDistanceYou">—</div>
+      </div>
+      <div class="track-chip">
+        <div class="card-label">To hospital</div>
+        <div class="card-value small" id="chipEtaHospital">—</div>
+      </div>
+      <div class="track-chip">
+        <div class="card-label">Traffic</div>
+        <div class="card-value small" id="chipTraffic">—</div>
+      </div>
+      <div class="track-chip wide">
+        <div class="card-label">Destination hospital</div>
+        <div class="card-value" id="chipHospital">—</div>
+        <div class="card-sub" id="chipHospitalLocation"></div>
+      </div>
+    </div>
+
+    <!-- Map: YOU + assigned ambulance + assigned hospital + both routes -->
+    <div class="map-card">
+      <div id="trackMap"></div>
+
+      <div class="track-legend">
+        <span><span class="leg-line leg-orange"></span> Ambulance → You</span>
+        <span><span class="leg-line leg-green"></span> You → Hospital</span>
+      </div>
+    </div>
+
+    <!-- Victim lifecycle -->
+    <div class="glass track-lifecycle">
+      <div class="lifecycle-track">
+        <div class="lifecycle-step" data-step="1">
+          <div class="lifecycle-node"></div>
+          <div class="lifecycle-label">REQUEST<br>RECEIVED</div>
+        </div>
+        <div class="lifecycle-step" data-step="2">
+          <div class="lifecycle-node"></div>
+          <div class="lifecycle-label">AMBULANCE<br>ASSIGNED</div>
+        </div>
+        <div class="lifecycle-step" data-step="3">
+          <div class="lifecycle-node"></div>
+          <div class="lifecycle-label">ON THE WAY<br>TO YOU</div>
+        </div>
+        <div class="lifecycle-step" data-step="4">
+          <div class="lifecycle-node"></div>
+          <div class="lifecycle-label">AMBULANCE<br>WITH YOU</div>
+        </div>
+        <div class="lifecycle-step" data-step="5">
+          <div class="lifecycle-node"></div>
+          <div class="lifecycle-label">TAKING YOU TO<br>THE HOSPITAL</div>
+        </div>
+        <div class="lifecycle-step" data-step="6">
+          <div class="lifecycle-node"></div>
+          <div class="lifecycle-label">COMPLETED</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHILE YOU WAIT guidance (visible at the same time as tracking) -->
+    <section class="guidance-panel glass track-guidance">
+      <div class="guidance-eyebrow">
+        <span class="pulse-dot orange"></span>
+        WHILE YOU WAIT
+      </div>
+      <h2 class="guidance-title-block">What is happening?</h2>
+      <p class="guidance-sub">
+        Pick a category for simple, safe first-aid guidance while the
+        ambulance is on its way. Completely optional — tracking
+        continues no matter what.
+      </p>
+
+      <div id="guidanceChips" class="guidance-chips"></div>
+      <div id="guidanceOutput" class="guidance-output hidden"></div>
+
+      <p class="guidance-note">
+        Not sure what is happening? Choose "I'm not sure" — you will
+        still get safe general guidance.
+      </p>
+    </section>
+
+  </section>
+
+</main>
+
+<!-- Leaflet (OpenStreetMap) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- ResQRoute tracking + guidance -->
+<script src="js/track.js"></script>
+<script src="js/guidance.js"></script>
+<script>
+  resqRenderGuidanceChips("guidanceChips", (categoryId) => {
+    resqRenderGuidanceText("guidanceOutput", categoryId);
+  });
+</script>
+
+</body>
+</html>

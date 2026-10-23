@@ -1,0 +1,268 @@
+/* ============================================================================
+   ResQRoute — Private victim tracking page (track.css)
+   ============================================================================ */
+
+.track-page {
+  min-height: 100vh;
+  padding: 26px 16px 40px;
+}
+
+.track-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: trackIn .5s ease both;
+}
+
+@keyframes trackIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.track-card {
+  padding: 28px 26px;
+  border-radius: var(--radius-lg, 22px);
+}
+
+.track-head .track-eyebrow,
+.track-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  color: var(--muted, #8b93a3);
+  margin-bottom: 12px;
+}
+
+.track-card h1,
+.track-head h1 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 26px;
+  margin: 0 0 10px;
+}
+
+.track-sub {
+  margin: 0 0 18px;
+  color: var(--muted, #8b93a3);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.track-alert {
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.track-alert.error {
+  background: rgba(255, 77, 79, 0.12);
+  border: 1px solid rgba(255, 77, 79, 0.35);
+  color: #ff9a9c;
+}
+
+.track-alert.notice {
+  background: rgba(255, 178, 86, 0.1);
+  border: 1px solid rgba(255, 178, 86, 0.32);
+  color: #ffce8f;
+}
+
+.track-alert.success {
+  background: rgba(46, 230, 168, 0.1);
+  border: 1px solid rgba(46, 230, 168, 0.32);
+  color: #7defc0;
+}
+
+/* Status chips ---------------------------------------------------------- */
+
+.track-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 16px;
+}
+
+.track-chip.wide {
+  grid-column: 1 / -1;
+}
+
+.card-value.small {
+  font-size: 15px;
+}
+
+.card-value.small.traffic-low { color: #7defc0; }
+.card-value.small.traffic-medium { color: #ffce8f; }
+.card-value.small.traffic-high { color: #ff9a9c; }
+
+/* Map -------------------------------------------------------------------- */
+
+.map-card {
+  position: relative;
+  min-height: 380px;
+  height: 48vh;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.09));
+  background: #0a0d12;
+}
+
+.map-card #trackMap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.track-legend {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 500;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(5, 7, 10, 0.75);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  font-size: 11.5px;
+  color: var(--text, #eef1f6);
+}
+
+.leg-line {
+  display: inline-block;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.leg-orange { background: #ff6b1a; }
+.leg-green { background: #2ee6a8; }
+
+/* Lifecycle -------------------------------------------------------------- */
+
+.track-lifecycle {
+  padding: 20px 16px;
+  border-radius: 16px;
+  overflow-x: auto;
+}
+
+.lifecycle-track {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  min-width: 620px;
+}
+
+.lifecycle-step {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+/* connecting line */
+.lifecycle-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: calc(50% + 12px);
+  width: calc(100% - 24px);
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.lifecycle-step.done:not(:last-child)::after {
+  background: rgba(46, 230, 168, 0.55);
+}
+
+.lifecycle-node {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  z-index: 1;
+}
+
+.lifecycle-step.done .lifecycle-node {
+  background: rgba(46, 230, 168, 0.85);
+  border-color: rgba(46, 230, 168, 0.85);
+}
+
+.lifecycle-step.active .lifecycle-node {
+  background: #ff6b1a;
+  border-color: #ff6b1a;
+  animation: lifecyclePulse 1.6s ease infinite;
+}
+
+@keyframes lifecyclePulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 107, 26, 0.45); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 107, 26, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 107, 26, 0); }
+}
+
+.lifecycle-label {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-align: center;
+  line-height: 1.5;
+  color: var(--muted, #8b93a3);
+}
+
+.lifecycle-step.active .lifecycle-label,
+.lifecycle-step.done .lifecycle-label {
+  color: var(--text, #eef1f6);
+}
+
+/* Guidance --------------------------------------------------------------- */
+
+.track-guidance {
+  padding: 20px 18px;
+  border-radius: 16px;
+  border-top: none;
+  margin-top: 2px;
+}
+
+/* Responsive -------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .track-chips {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 420px) {
+  .track-page {
+    padding: 18px 12px 32px;
+  }
+
+  .map-card {
+    min-height: 300px;
+    height: 46vh;
+  }
+
+  .track-chips {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+}

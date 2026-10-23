@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+        content="ResQRoute Staff Command Center sign in. Emergency ambulance dispatch operations are restricted to authenticated staff.">
+  <meta name="robots" content="noindex">
+  <title>ResQRoute — Staff Sign In</title>
+
+  <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ff6b1a'/%3E%3Cpath d='M32 18v28M18 32h28' stroke='white' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
+  <!-- ResQRoute design system -->
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/login.css">
+</head>
+
+<body class="login-page">
+
+<div class="bg-grid"></div>
+
+<main class="login-wrap">
+
+  <div class="brand plain">
+    <svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+      <rect width="40" height="40" rx="11" fill="#ff6b1a"/>
+      <path d="M20 11v18M11 20h18" stroke="#fff" stroke-width="5"
+            stroke-linecap="round"/>
+      <circle cx="29.5" cy="29.5" r="1.7" fill="rgba(255,255,255,.6)"/>
+      <circle cx="34" cy="34" r="1.7" fill="rgba(255,255,255,.85)"/>
+    </svg>
+    <span>ResQ<span class="brand-accent">Route</span></span>
+  </div>
+
+  <div class="glass login-card">
+
+    <div class="login-eyebrow">
+      <span class="pulse-dot orange"></span>
+      STAFF COMMAND CENTER
+    </div>
+
+    <h1>Sign in</h1>
+    <p class="login-sub">
+      Ambulance, hospital and dispatch operations are restricted to
+      authenticated staff.
+    </p>
+
+    <div id="loginError" class="login-alert error hidden">
+      Invalid username or password. Please try again.
+    </div>
+
+    <div id="loginNotice" class="login-alert notice hidden">
+      You have been signed out.
+    </div>
+
+    <form class="login-form" method="post" action="/login" autocomplete="on">
+      <input type="hidden" name="_csrf" id="csrfToken" value="">
+
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text"
+               placeholder="Staff username" autocomplete="username"
+               required autofocus>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password"
+               placeholder="Password" autocomplete="current-password"
+               required>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">
+        SIGN IN
+      </button>
+    </form>
+
+    <p class="login-hint">
+      First run? A random staff password is generated and printed once
+      in the application console. To reset it, delete the staff_user row
+      and restart the application.
+    </p>
+
+    <div class="login-foot">
+      <span>Need an ambulance instead?</span>
+      <a href="victim.html">Open the emergency page</a>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+  /* Fill the CSRF token from the readable cookie set by the backend. */
+  (function () {
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+    if (match) {
+      document.getElementById("csrfToken").value =
+        decodeURIComponent(match[1]);
+    }
+  })();
+
+  /* Status banners after a failed login or a logout. */
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.has("error")) {
+      document.getElementById("loginError").classList.remove("hidden");
+    }
+    if (params.has("logout")) {
+      document.getElementById("loginNotice").classList.remove("hidden");
+    }
+  })();
+
+  /* Already signed in? Go straight to the Command Center. */
+  (async function () {
+    try {
+      const response = await fetch("/route/latest",
+        { headers: { "Accept": "application/json" } });
+
+      if (response.ok) {
+        window.location.replace("command.html");
+      }
+    } catch (error) {
+      /* backend offline — the login form is still usable */
+    }
+  })();
+</script>
+
+</body>
+</html>

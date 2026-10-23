@@ -1,0 +1,920 @@
+/* ============================================================================
+   ResQRoute — Shared Design System (theme.css)
+   Dark futuristic emergency-response theme with orange accent.
+   Used by: index.html (staff login), command.html, victim.html,
+   track.html and their shared components.
+   ============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   1. Design tokens
+---------------------------------------------------------------------------- */
+:root {
+  /* Backgrounds */
+  --bg-0: #05070a;            /* page base (near black) */
+  --bg-1: #090c11;            /* raised panels */
+  --bg-2: #0e1219;            /* inputs, wells */
+
+  /* Glass surfaces */
+  --surface: rgba(255, 255, 255, 0.035);
+  --surface-2: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* Brand: orange */
+  --orange: #ff6b1a;
+  --orange-2: #ff9147;
+  --orange-deep: #e2560b;
+  --orange-glow: rgba(255, 107, 26, 0.35);
+  --orange-soft: rgba(255, 107, 26, 0.12);
+  --orange-faint: rgba(255, 107, 26, 0.05);
+
+  /* Status colors */
+  --red: #ff4d5e;
+  --red-soft: rgba(255, 77, 94, 0.12);
+  --green: #2ee6a8;
+  --green-soft: rgba(46, 230, 168, 0.12);
+  --blue: #4da3ff;
+  --blue-soft: rgba(77, 163, 255, 0.12);
+
+  /* Text */
+  --text: #f2f5f9;
+  --text-dim: #9aa4b2;
+  --text-faint: #5d6875;
+
+  /* Type */
+  --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  /* Shape & motion */
+  --radius: 18px;
+  --radius-sm: 12px;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --nav-h: 74px;
+}
+
+/* ----------------------------------------------------------------------------
+   2. Base
+---------------------------------------------------------------------------- */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--bg-0);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+img,
+svg {
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--orange);
+  color: #0b0d10;
+}
+
+/* Slim dark scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-0);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #232a35;
+  border-radius: 8px;
+  border: 2px solid var(--bg-0);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #313b4a;
+}
+
+/* ----------------------------------------------------------------------------
+   3. Typography helpers
+---------------------------------------------------------------------------- */
+.hidden {
+  display: none !important;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--orange-2);
+}
+
+.eyebrow::before {
+  content: "";
+  width: 22px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--orange), transparent);
+  border-radius: 2px;
+}
+
+.section-title {
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.1;
+  margin: 14px 0 12px;
+}
+
+.section-sub {
+  color: var(--text-dim);
+  font-size: clamp(15px, 1.6vw, 17px);
+  line-height: 1.65;
+  max-width: 620px;
+}
+
+.text-dim {
+  color: var(--text-dim);
+}
+
+.text-faint {
+  color: var(--text-faint);
+}
+
+.accent {
+  color: var(--orange);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* ----------------------------------------------------------------------------
+   4. Layout utilities
+---------------------------------------------------------------------------- */
+.container {
+  width: min(1180px, calc(100% - 48px));
+  margin-inline: auto;
+}
+
+.section {
+  padding: 96px 0;
+  scroll-margin-top: calc(var(--nav-h) + 12px);
+}
+
+.section-head {
+  margin-bottom: 44px;
+}
+
+/* ----------------------------------------------------------------------------
+   5. Buttons
+---------------------------------------------------------------------------- */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 13px 24px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    transform 0.25s var(--ease),
+    box-shadow 0.25s var(--ease),
+    background 0.25s var(--ease),
+    border-color 0.25s var(--ease),
+    color 0.25s var(--ease);
+  overflow: hidden;
+  user-select: none;
+}
+
+.btn:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+/* Primary: orange gradient with glow */
+.btn-primary {
+  background: linear-gradient(135deg, var(--orange) 0%, #ff8a3d 100%);
+  color: #14080a;
+  box-shadow:
+    0 0 0 1px rgba(255, 130, 50, 0.35),
+    0 10px 30px -10px var(--orange-glow);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(255, 140, 60, 0.55),
+    0 16px 42px -8px var(--orange-glow);
+}
+
+/* Light sweep on hover (premium shine) */
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -80%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s var(--ease);
+}
+
+.btn-primary:hover::after {
+  left: 130%;
+}
+
+/* Ghost: glass button */
+.btn-ghost {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.btn-ghost:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+/* Emergency: red for SOS */
+.btn-danger {
+  background: linear-gradient(135deg, #ff3b4e, #ff5f3c);
+  color: #fff;
+  box-shadow: 0 10px 30px -10px rgba(255, 77, 94, 0.45);
+}
+
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 42px -8px rgba(255, 77, 94, 0.55);
+}
+
+/* Small utility buttons (table actions, speed controls) */
+.btn-sm {
+  padding: 8px 14px;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ----------------------------------------------------------------------------
+   6. Glass cards
+---------------------------------------------------------------------------- */
+.glass {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.glass-hover {
+  transition:
+    transform 0.35s var(--ease),
+    border-color 0.35s var(--ease),
+    box-shadow 0.35s var(--ease);
+}
+
+.glass-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 140, 60, 0.35);
+  box-shadow:
+    0 24px 50px -20px rgba(0, 0, 0, 0.7),
+    0 0 40px -18px var(--orange-glow);
+}
+
+/* Card header + label styles used across pages */
+.card-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.card-value {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+
+.card-sub {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* ----------------------------------------------------------------------------
+   7. Badges & status pills
+---------------------------------------------------------------------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+.badge-available,
+.badge-success {
+  color: var(--green);
+  background: var(--green-soft);
+  border-color: rgba(46, 230, 168, 0.25);
+}
+
+.badge-busy,
+.badge-warning {
+  color: var(--orange-2);
+  background: var(--orange-soft);
+  border-color: rgba(255, 140, 60, 0.3);
+}
+
+.badge-to_victim,
+.badge-to_hospital,
+.badge-at_victim,
+.badge-info {
+  color: var(--blue);
+  background: var(--blue-soft);
+  border-color: rgba(77, 163, 255, 0.28);
+}
+
+.badge-dispatched,
+.badge-error {
+  color: var(--red);
+  background: var(--red-soft);
+  border-color: rgba(255, 77, 94, 0.28);
+}
+
+/* Traffic colors */
+.traffic-low {
+  color: var(--green);
+}
+
+.traffic-medium {
+  color: var(--orange-2);
+}
+
+.traffic-high {
+  color: var(--red);
+}
+
+/* ----------------------------------------------------------------------------
+   8. Forms
+---------------------------------------------------------------------------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.field input,
+.field select {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  outline: none;
+  transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease), background 0.25s var(--ease);
+}
+
+.field input::placeholder {
+  color: var(--text-faint);
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: rgba(255, 140, 60, 0.55);
+  box-shadow: 0 0 0 3px var(--orange-faint);
+  background: #10151d;
+}
+
+.field select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239aa4b2' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 38px;
+}
+
+.field select option {
+  background: var(--bg-1);
+  color: var(--text);
+}
+
+/* ----------------------------------------------------------------------------
+   9. Tables
+---------------------------------------------------------------------------- */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+th, td {
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+th {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  background: rgba(255, 255, 255, 0.028);
+}
+
+td {
+  color: var(--text-dim);
+}
+
+tbody tr {
+  transition: background 0.2s var(--ease);
+}
+
+tbody tr:hover {
+  background: rgba(255, 107, 26, 0.045);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Search input used on the command center */
+.search {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text);
+  font-size: 14.5px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+
+.search:focus {
+  border-color: rgba(255, 140, 60, 0.55);
+  box-shadow: 0 0 0 3px var(--orange-faint);
+}
+
+.search::placeholder {
+  color: var(--text-faint);
+}
+
+/* ----------------------------------------------------------------------------
+   10. Toast notifications (replace blocking alert())
+---------------------------------------------------------------------------- */
+.toast-stack {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 260px;
+  max-width: 380px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  background: rgba(16, 20, 27, 0.92);
+  border: 1px solid var(--border-strong);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  transform: translateX(24px);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+  pointer-events: auto;
+}
+
+.toast::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--blue);
+  flex: none;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-success {
+  border-color: rgba(46, 230, 168, 0.35);
+}
+
+.toast-success::before {
+  background: var(--green);
+}
+
+.toast-error {
+  border-color: rgba(255, 77, 94, 0.4);
+}
+
+.toast-error::before {
+  background: var(--red);
+}
+
+.toast-info::before {
+  background: var(--orange);
+}
+
+/* ----------------------------------------------------------------------------
+   11. Scroll-reveal animations (driven by IntersectionObserver in JS)
+---------------------------------------------------------------------------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.75s var(--ease),
+    transform 0.75s var(--ease);
+  transition-delay: var(--d, 0s);
+  will-change: opacity, transform;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-left {
+  transform: translateX(-26px);
+}
+
+.reveal-right {
+  transform: translateX(26px);
+}
+
+.reveal-scale {
+  transform: scale(0.96);
+}
+
+/* Skeleton shimmer (used while data loads) */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  transform: translateX(-100%);
+  animation: skeletonSweep 1.4s ease-in-out infinite;
+}
+
+@keyframes skeletonSweep {
+  100% { transform: translateX(100%); }
+}
+
+/* Soft pulsing dot ("live" indicators) */
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 0 rgba(46, 230, 168, 0.6);
+  animation: pulseDot 2s ease-out infinite;
+  flex: none;
+}
+
+.pulse-dot.orange {
+  background: var(--orange);
+  box-shadow: 0 0 0 0 rgba(255, 107, 26, 0.6);
+}
+
+.pulse-dot.red {
+  background: var(--red);
+  box-shadow: 0 0 0 0 rgba(255, 77, 94, 0.6);
+}
+
+@keyframes pulseDot {
+  0%   { box-shadow: 0 0 0 0 rgba(46, 230, 168, 0.45); }
+  70%  { box-shadow: 0 0 0 9px rgba(46, 230, 168, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(46, 230, 168, 0); }
+}
+
+/* ----------------------------------------------------------------------------
+   12. Leaflet — dark futuristic map skin
+---------------------------------------------------------------------------- */
+.leaflet-container {
+  background: #0a0d12;
+  font-family: var(--font-body);
+  outline: none;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: rgba(16, 20, 27, 0.95);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.leaflet-popup-content {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 12px 16px;
+}
+
+.leaflet-popup-content b {
+  color: var(--orange-2);
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+}
+
+.leaflet-popup-close-button {
+  color: var(--text-faint) !important;
+}
+
+.leaflet-control-attribution {
+  background: rgba(5, 7, 10, 0.75) !important;
+  color: var(--text-faint) !important;
+  font-size: 10.5px !important;
+  border-radius: 8px 0 0 0;
+}
+
+.leaflet-control-attribution a {
+  color: var(--text-dim) !important;
+}
+
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background: rgba(16, 20, 27, 0.95) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+.leaflet-bar a:hover {
+  background: rgba(30, 36, 46, 0.95) !important;
+}
+
+/* Custom markers (built with L.divIcon in JS) */
+.leaflet-div-icon.qr-marker {
+  background: transparent;
+  border: none;
+}
+
+.marker {
+  position: relative;
+  width: 26px;
+  height: 26px;
+}
+
+.marker .marker-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  opacity: 0.8;
+  animation: markerPulse 2.2s ease-out infinite;
+}
+
+.marker .marker-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, 0.92);
+}
+
+@keyframes markerPulse {
+  0%   { transform: scale(0.55); opacity: 0.85; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+
+/* Victim / emergency marker: red */
+.marker-victim {
+  color: var(--red);
+}
+
+.marker-victim .marker-core {
+  background: var(--red);
+  box-shadow: 0 0 14px rgba(255, 77, 94, 0.9);
+}
+
+/* Ambulance marker: orange square with white medical cross */
+.marker-ambulance {
+  color: var(--orange);
+  width: 30px;
+  height: 30px;
+}
+
+.marker-ambulance .marker-pulse {
+  border-radius: 10px;
+  animation-duration: 1.6s;
+}
+
+.marker-ambulance .marker-core {
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
+  border: none;
+  background: linear-gradient(135deg, var(--orange), #ff8a3d);
+  box-shadow:
+    0 0 18px var(--orange-glow),
+    0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* White cross drawn with two bars */
+.marker-ambulance .marker-core::before,
+.marker-ambulance .marker-core::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 1.5px;
+}
+
+.marker-ambulance .marker-core::before {
+  width: 14px;
+  height: 4px;
+}
+
+.marker-ambulance .marker-core::after {
+  width: 4px;
+  height: 14px;
+}
+
+/* Hospital marker: green with cross */
+.marker-hospital {
+  color: var(--green);
+}
+
+.marker-hospital .marker-core {
+  background: var(--green);
+  box-shadow: 0 0 14px rgba(46, 230, 168, 0.8);
+}
+
+/* Flowing light along route polylines (className: route-flow) */
+.route-flow {
+  stroke-dasharray: 2 16;
+  stroke-linecap: round;
+  animation: routeFlow 1.15s linear infinite;
+}
+
+@keyframes routeFlow {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -18; }
+}
+
+/* ----------------------------------------------------------------------------
+   13. Ambient page background (used on all pages)
+---------------------------------------------------------------------------- */
+.bg-aura {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 520px at 85% -10%, rgba(255, 107, 26, 0.09), transparent 60%),
+    radial-gradient(700px 500px at -10% 30%, rgba(77, 163, 255, 0.05), transparent 60%),
+    radial-gradient(800px 600px at 50% 110%, rgba(255, 107, 26, 0.05), transparent 60%),
+    var(--bg-0);
+}
+
+/* Subtle map-grid texture layer */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 75%);
+}
+
+/* ----------------------------------------------------------------------------
+   14. Reduced motion — accessibility
+---------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
